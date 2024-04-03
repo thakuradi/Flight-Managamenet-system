@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id                          Int       @id @default(autoincrement())
+  email                       String    @unique
+  username                    String
+  password                    String
+  role                        Role      @default(USER)
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  bookings                    Booking[]
+}
+
+
+model Airplane {
+  id                          Int      @id @default(autoincrement())
+  name                        String
+  model                       String
+  capacity                    Int
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+  seats                       Seat[]
+  flights                     Flight[]
+}
+
+model Seat {
+  id                          Int       @id @default(autoincrement())
+  seatNumber                  String
+  airplaneId                  Int
+  airplane                    Airplane  @relation(fields: [airplaneId], references: [id])
+  bookings                    Booking[]
+}
+
+model Routes {
+  id                          Int      @id @default(autoincrement())
+  origin                      String
+  destination                 String
+  flights                     Flight[]
+
+  @@unique([origin, destination])
+}
+
+model Flight {
+  id                          Int       @id @default(autoincrement())
+  arrivalTime                 DateTime
+  departureTime               DateTime
+  flightNumber                String
+  routeId                     Int
+  price                       Float
+  route                       Routes    @relation(fields: [routeId], references: [id])
+  airplane                    Airplane  @relation(fields: [airplaneId], references: [id])
+  airplaneId                  Int
+  bookings                    Booking[]
+}
+
+model Booking {
+  id                          Int    @id @default(autoincrement())
+  userId                      Int
+  user                        User   @relation(fields: [userId], references: [id])
+  flightId                    Int
+  flight                      Flight @relation(fields: [flightId], references: [id])
+  seatId                      Int
+  seat                        Seat   @relation(fields: [seatId], references: [id])
+}
